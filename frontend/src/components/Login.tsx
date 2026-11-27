@@ -1,4 +1,4 @@
-function App() {
+const Login = () => {
   return (
     <div className="min-h-screen bg-[#F5F8FC] flex justify-center">
       <main className="w-full max-w-[393px] min-h-screen bg-white px-6 flex flex-col">
@@ -96,4 +96,4 @@ function App() {
   );
 }
 
-export default App;
+export default Login;
