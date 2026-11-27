@@ -1,0 +1,15 @@
+import {useState} from "react";
+import type {FormEvent} from "react";
+import BrandLogo from "./BrandLogo";
+interface LoginProps{onLogin:(email:string)=>void;onRegister:()=>void;onGuest:()=>void;}
+export const LoginScreen=({onLogin,onRegister,onGuest}:LoginProps)=>{
+ const [email,setEmail]=useState("");
+ const submit=(event:FormEvent<HTMLFormElement>)=>{event.preventDefault();onLogin(email.trim()||"guest@tripmemo.local");};
+ return <main className="auth-screen"><div className="auth-cover"><div className="auth-cover-scrim"/><div className="auth-brand"><BrandLogo inverse/><p>みんなの旅を、ずっと。</p></div></div><section className="auth-card"><h1 className="sr-only">TripMemo ログイン</h1><form onSubmit={submit} className="auth-actions"><label className="sr-only" htmlFor="login-email">メールアドレス</label><input id="login-email" className="auth-email-field" type="email" value={email} onChange={e=>setEmail(e.target.value)} aria-label="デモ用メールアドレス"/><button className="button-primary auth-main-button" type="submit">ログイン</button></form><button type="button" className="button-secondary auth-main-button" onClick={onRegister}>新規登録</button><div className="auth-divider"><span>または</span></div><button type="button" className="social-login-button" onClick={()=>window.alert("Google認証はバックエンド接続後に利用できます。")}><b className="google-g">G</b> Googleで続ける</button><button type="button" className="social-login-button" onClick={()=>window.alert("Apple認証はバックエンド接続後に利用できます。")}><b className="apple-mark">●</b> Appleで続ける</button><button type="button" className="guest-login-button" onClick={onGuest}>ゲストで始める</button></section><p className="auth-footnote">旅の記録を、仲間と一緒に。</p></main>;
+};
+interface RegisterProps{onSubmit:(name:string,email:string)=>void;onBack:()=>void;}
+export const RegisterScreen=({onSubmit,onBack}:RegisterProps)=>{
+ const [name,setName]=useState("");const [email,setEmail]=useState("");
+ const submit=(event:FormEvent<HTMLFormElement>)=>{event.preventDefault();onSubmit(name.trim(),email.trim());};
+ return <main className="register-screen"><header className="register-header"><button className="header-icon-button" type="button" onClick={onBack}>‹</button><BrandLogo/><span className="header-spacer"/></header><section className="register-content"><p className="section-kicker">WELCOME TO TRIPMEMO</p><h1>新しい旅の思い出を<br/>はじめよう。</h1><p className="muted-text">アカウント情報を入力してください。</p><form className="form-stack" onSubmit={submit}><label htmlFor="register-name">お名前</label><input id="register-name" className="form-input" value={name} onChange={e=>setName(e.target.value)} placeholder="たびのすけ" required/><label htmlFor="register-email">メールアドレス</label><input id="register-email" className="form-input" type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="example@email.com" required/><button className="button-primary form-submit" type="submit">登録して始める</button></form><p className="muted-text centered-text">デモ画面のため、情報はサーバーに送信されません。</p></section></main>;
+};

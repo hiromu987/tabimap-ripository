@@ -1,9 +1,61 @@
-import Login from './components/Login';
+import {useEffect,useMemo,useState} from "react";
+import type {AppUser,BottomTab,PostFormValues,Screen,Trip,TripFormValues,TravelComment,TravelPost} from "./types";
+import {demoUser,initialTrips} from "./data/mockData";
+import {createId} from "./utils/date";
+import {loadTrips,saveTrips} from "./utils/storage";
+import AlbumScreen from "./components/AlbumScreen";
+import {LoginScreen,RegisterScreen} from "./components/AuthScreens";
+import BottomNavigation from "./components/BottomNavigation";
+import CommentDetailScreen from "./components/CommentDetailScreen";
+import HomeScreen from "./components/HomeScreen";
+import MapScreen from "./components/MapScreen";
+import PostCreateScreen from "./components/PostCreateScreen";
+import ProfileScreen from "./components/ProfileScreen";
+import TimelineScreen from "./components/TimelineScreen";
+import TripCreateScreen from "./components/TripCreateScreen";
+import TripDetailScreen from "./components/TripDetailScreen";
+import "./css/style.css";
 
-const App = () => {
-  return (
-      <Login />
-  );
-}
-
+const App=()=>{
+ const [screen,setScreen]=useState<Screen>("login");
+ const [user,setUser]=useState<AppUser|null>(null);
+ const [trips,setTrips]=useState<Trip[]>(loadTrips);
+ const [selectedTripId,setSelectedTripId]=useState(initialTrips[0].id);
+ const [selectedPostId,setSelectedPostId]=useState(initialTrips[0].posts[0].id);
+ useEffect(()=>{saveTrips(trips);},[trips]);
+ const selectedTrip=useMemo(()=>trips.find(t=>t.id===selectedTripId)||trips[0],[trips,selectedTripId]);
+ const selectedPost=useMemo(()=>selectedTrip?.posts.find(p=>p.id===selectedPostId)||selectedTrip?.posts[0],[selectedTrip,selectedPostId]);
+ const login=(email:string)=>{const rawName=email.split("@")[0].replace(/[._-]/g," ")||demoUser.name;setUser({...demoUser,email,name:rawName==="guest"?"たびのすけ":rawName});setScreen("home");};
+ const guest=()=>{setUser(demoUser);setScreen("home");};
+ const register=(name:string,email:string)=>{setUser({...demoUser,id:createId(),name,email});setScreen("home");};
+ const logout=()=>{setUser(null);setScreen("login");};
+ const createTrip=(values:TripFormValues)=>{
+  const trip:Trip={id:createId(),name:values.name,startDate:values.startDate,endDate:values.endDate,destinations:values.destinations.split(/[、・,]/).map(v=>v.trim()).filter(Boolean),members:[{id:user?.id||"guest",name:user?.name||"ゲスト",avatarUrl:user?.avatarUrl||demoUser.avatarUrl}],description:values.description,coverImage:values.coverImage||"https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=1200&q=80",isActive:true,posts:[]};
+  setTrips(current=>[trip,...current.map(t=>({...t,isActive:false}))]);setSelectedTripId(trip.id);setScreen("trip-detail");
+ };
+ const createPost=(values:PostFormValues)=>{
+  const post:TravelPost={id:createId(),...values,imageUrl:values.imageUrl||"https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=1000&q=80",author:user?.name||demoUser.name,avatarUrl:user?.avatarUrl||demoUser.avatarUrl,likes:0,likedByMe:false,comments:[]};
+  setTrips(current=>current.map(t=>t.id===selectedTripId?{...t,posts:[post,...t.posts]}:t));setSelectedPostId(post.id);setScreen("comment-detail");
+ };
+ const toggleLike=()=>{if(!selectedPost)return;setTrips(current=>current.map(t=>t.id!==selectedTripId?t:{...t,posts:t.posts.map(p=>p.id!==selectedPost.id?p:{...p,likedByMe:!p.likedByMe,likes:p.likes+(p.likedByMe?-1:1)})}));};
+ const addComment=(message:string)=>{if(!selectedPost)return;const comment:TravelComment={id:createId(),author:user?.name||demoUser.name,avatarUrl:user?.avatarUrl||demoUser.avatarUrl,message,createdAt:"たった今"};setTrips(current=>current.map(t=>t.id!==selectedTripId?t:{...t,posts:t.posts.map(p=>p.id!==selectedPost.id?p:{...p,comments:[...p.comments,comment]})}));};
+ const openPost=(id:string)=>{setSelectedPostId(id);setScreen("comment-detail");};
+ const navigate=(tab:BottomTab)=>{if(tab==="home")setScreen("home");if(tab==="map")setScreen("map");if(tab==="create")setScreen("post-create");if(tab==="album")setScreen("album");if(tab==="profile")setScreen("profile");};
+ const activeTab:BottomTab=screen==="map"?"map":screen==="post-create"?"create":screen==="album"?"album":screen==="profile"?"profile":"home";
+ let content;
+ if(screen==="home")content=<HomeScreen userName={user?.name||demoUser.name} trips={trips} onOpenTrip={id=>{setSelectedTripId(id);setScreen("trip-detail");}} onCreateTrip={()=>setScreen("trip-create")} onOpenProfile={()=>setScreen("profile")}/>;
+ else if(screen==="trip-create")content=<TripCreateScreen onBack={()=>setScreen("home")} onCreate={createTrip}/>;
+ else if(screen==="trip-detail")content=<TripDetailScreen trip={selectedTrip} onBack={()=>setScreen("home")} onTab={tab=>setScreen(tab)} onOpenPost={openPost} onCreatePost={()=>setScreen("post-create")} onManageMembers={()=>window.alert("メンバー管理はバックエンド接続後に実装します。")}/>;
+ else if(screen==="map")content=<MapScreen trip={selectedTrip} onBack={()=>setScreen("trip-detail")} onOpenPost={openPost}/>;
+ else if(screen==="post-create")content=<PostCreateScreen authorName={user?.name||demoUser.name} defaultDate={selectedTrip.startDate} onBack={()=>setScreen("trip-detail")} onSubmit={createPost}/>;
+ else if(screen==="timeline")content=<TimelineScreen trip={selectedTrip} onBack={()=>setScreen("trip-detail")} onOpenPost={openPost}/>;
+ else if(screen==="album")content=<AlbumScreen trip={selectedTrip} onBack={()=>setScreen("trip-detail")} onOpenPost={openPost}/>;
+ else if(screen==="comment-detail"&&selectedPost)content=<CommentDetailScreen post={selectedPost} onBack={()=>setScreen("trip-detail")} onToggleLike={toggleLike} onAddComment={addComment}/>;
+ else if(screen==="profile")content=<ProfileScreen user={user||demoUser} trips={trips} onBack={()=>setScreen("home")} onLogout={logout}/>;
+ else content=<HomeScreen userName={user?.name||demoUser.name} trips={trips} onOpenTrip={id=>{setSelectedTripId(id);setScreen("trip-detail");}} onCreateTrip={()=>setScreen("trip-create")} onOpenProfile={()=>setScreen("profile")}/>;
+ if(screen==="login")return <div className="app-frame"><LoginScreen onLogin={login} onRegister={()=>setScreen("register")} onGuest={guest}/></div>;
+ if(screen==="register")return <div className="app-frame"><RegisterScreen onBack={()=>setScreen("login")} onSubmit={register}/></div>;
+ const hideNavigation=screen==="trip-create"||screen==="trip-detail"||screen==="post-create"||screen==="comment-detail";
+ return <div className="app-frame"><div className="app-page-content">{content}</div>{!hideNavigation&&<BottomNavigation activeTab={activeTab} onNavigate={navigate}/>}</div>;
+};
 export default App;

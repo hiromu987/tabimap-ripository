@@ -1,0 +1,3 @@
+interface Props{title:string;onBack:()=>void;rightAction?:string;onRightAction?:()=>void;}
+const ScreenHeader=({title,onBack,rightAction,onRightAction}:Props)=><header className="screen-header"><button type="button" className="header-icon-button" onClick={onBack} aria-label="戻る">‹</button><h1>{title}</h1>{rightAction?<button type="button" className="header-text-action" onClick={onRightAction}>{rightAction}</button>:<span className="header-spacer"/>}</header>;
+export default ScreenHeader;

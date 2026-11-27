@@ -1,0 +1,5 @@
+import type { BottomTab } from "../types";
+interface Props{activeTab:BottomTab;onNavigate:(tab:BottomTab)=>void;}
+const items:{key:BottomTab;icon:string;label:string}[]=[{key:"home",icon:"⌂",label:"ホーム"},{key:"map",icon:"⌖",label:"マップ"},{key:"create",icon:"+",label:"投稿"},{key:"album",icon:"▧",label:"アルバム"},{key:"profile",icon:"♙",label:"マイページ"}];
+const BottomNavigation=({activeTab,onNavigate}:Props)=><nav className="bottom-navigation" aria-label="メインメニュー">{items.map(item=><button key={item.key} type="button" className={"bottom-nav-item"+(activeTab===item.key?" active":"")+(item.key==="create"?" create-nav-item":"")} onClick={()=>onNavigate(item.key)} aria-current={activeTab===item.key?"page":undefined}><span className="bottom-nav-icon">{item.icon}</span><span className="bottom-nav-label">{item.label}</span></button>)}</nav>;
+export default BottomNavigation;

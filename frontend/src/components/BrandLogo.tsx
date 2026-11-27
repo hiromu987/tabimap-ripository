@@ -1,0 +1,3 @@
+interface BrandLogoProps{inverse?:boolean;}
+const BrandLogo=({inverse=false}:BrandLogoProps)=><div className={"brand-logo"+(inverse?" inverse":"")}><svg viewBox="0 0 64 43" role="img" aria-label="TripMemo ロゴ"><path d="M4 34 20 17 28 25 39 8 60 34" fill="none" stroke="currentColor" strokeWidth="2.7" strokeLinecap="round" strokeLinejoin="round"/><path d="m46 14 14-11-5 16-4-5-7 5Z" fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round"/></svg><span>TripMemo</span></div>;
+export default BrandLogo;

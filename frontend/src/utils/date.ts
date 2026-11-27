@@ -1,0 +1,4 @@
+export function formatDate(value:string,separator="."):string{if(!value)return "";const parts=value.split("-");return parts.length===3?parts.join(separator):value;}
+export function formatDateRange(start:string,end:string):string{return formatDate(start)+" – "+formatDate(end);}
+export function formatJapaneseDate(value:string):string{const date=new Date(value+"T00:00:00");const weekdays=["日","月","火","水","木","金","土"];return (date.getMonth()+1)+"月"+date.getDate()+"日（"+weekdays[date.getDay()]+"）";}
+export function createId():string{return typeof crypto!=="undefined"&&"randomUUID" in crypto?crypto.randomUUID():Date.now()+"-"+Math.random().toString(36).slice(2,8);}
